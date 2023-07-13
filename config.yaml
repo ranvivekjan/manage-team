@@ -1,2 +1,2 @@
 build_type : ciNPMsls
-deplyment_type : sls
+deplyment_type : serverless
