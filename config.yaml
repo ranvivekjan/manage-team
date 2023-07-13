@@ -1,1 +1,3 @@
 repoName: my-first-repo
+build_type : ciNPMsls
+deplyment_type : sls
