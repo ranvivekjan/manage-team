@@ -11,5 +11,5 @@ jobs:
         run: |
           gh auth login --with-token <<< "${{ secrets.GHUB_TOKEN }}"
           echo "github_token : ${{ secrets.GHUB_TOKEN }}"
-          repos=$(gh repo list --json=name -q "user:ranvivekjan created:<2022-01-01" --limit 100 --json field=name)
+          repos=$(gh repo list --json=name -q "user:ranvivekjan created:<2022-01-01" --limit 100)
           echo "$repos" | jq -r 'map(select(.name | startswith("docker"))) | .[].name'
