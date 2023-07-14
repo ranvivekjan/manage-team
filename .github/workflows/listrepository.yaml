@@ -9,6 +9,6 @@ jobs:
     steps:
       - name: List Repositories
         run: |
-          gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
+          gh auth login --with-token <<< "${{ secrets.GHUB_TOKEN }}"
           repos=$(gh repo list --json=name -q "org:<your_organization_name>" --limit 100 --jsonField=name)
           echo "$repos" | jq -r '.[].name'
