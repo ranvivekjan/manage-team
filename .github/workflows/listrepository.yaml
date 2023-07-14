@@ -1,3 +1,19 @@
+# name: List Repositories
+# on:
+#   workflow_dispatch:
+
+# jobs:
+#   list_repositories:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: List Repositories
+#         run: |
+#           gh auth login --with-token <<< "${{ secrets.GHUB_TOKEN }}"
+#           echo "github_token : ${{ secrets.GHUB_TOKEN }}"
+#           repos=$(gh repo list --json=name -q "user:ranvivekjan created:<2022-01-01" --limit 100)
+#           echo "$repos" | jq -r 'map(select(.name | startswith("docker"))) | .[].name'
+
 name: List Repositories
 on:
   workflow_dispatch:
@@ -7,9 +23,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set up GitHub CLI
+        run: |
+          echo "machine github.com login ${{ secrets.GHUB_TOKEN }}" > ~/.netrc
+          gh config set prompt disabled
+
       - name: List Repositories
         run: |
-          gh auth login --with-token <<< "${{ secrets.GHUB_TOKEN }}"
-          echo "github_token : ${{ secrets.GHUB_TOKEN }}"
-          repos=$(gh repo list --json=name -q "user:ranvivekjan created:<2022-01-01" --limit 100)
+          repos=$(gh repo list --json=name -q "user:<github_username> created:<2022-01-01" --limit 100)
           echo "$repos" | jq -r 'map(select(.name | startswith("docker"))) | .[].name'
+
+
