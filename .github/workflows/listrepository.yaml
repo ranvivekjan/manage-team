@@ -1,36 +1,44 @@
-# name: List Repositories
-# on:
-#   workflow_dispatch:
+name: List Repositories with config-gha.yaml
 
-# jobs:
-#   list_repositories:
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - name: List Repositories
-#         run: |
-#           gh auth login --with-token <<< "${{ secrets.GHUB_TOKEN }}"
-#           echo "github_token : ${{ secrets.GHUB_TOKEN }}"
-#           repos=$(gh repo list --json=name -q "user:ranvivekjan created:<2022-01-01" --limit 100)
-#           echo "$repos" | jq -r 'map(select(.name | startswith("docker"))) | .[].name'
-
-name: List Repositories
 on:
   workflow_dispatch:
 
 jobs:
-  list_repositories:
+  list-repos:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Set up GitHub CLI
-        run: |
-          echo "machine github.com login ${{ secrets.GHUB_TOKEN }}" > ~/.netrc
-          gh config set prompt disabled
+      - name: Set up Git
+        uses: actions/checkout@v2
 
       - name: List Repositories
+        id: list-repos
         run: |
-          repos=$(gh repo list --json=name -q "user:<github_username> created:<2022-01-01" --limit 100)
-          echo "$repos" | jq -r 'map(select(.name | startswith("docker"))) | .[].name'
+          ORGANIZATION="org-dev-jm"
+          PAGE=1
+          PER_PAGE=100
+          REPOS=()
 
+          while true; do
+            RESPONSE=$(curl --header "Authorization: Bearer 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 \
+                            --header "Accept: application/vnd.github.v3+json" \
+                            "https://api.github.com/orgs/$ORGANIZATION/repos?page=$PAGE&per_page=$PER_PAGE")
 
+            if [[ $(echo "$RESPONSE" | jq -r 'length') -eq 0 ]]; then
+              break
+            fi
+
+            REPO_NAMES=($(echo "$RESPONSE" | jq -r '.[].name'))
+
+            for REPO in "${REPO_NAMES[@]}"; do
+              CHECK_RESPONSE=$(curl --header "Authorization: Bearer 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 \
+                                    --header "Accept: application/vnd.github.v3+json" \
+                                    "https://api.github.com/repos/$ORGANIZATION/$REPO/contents/config-gha.yaml")
+
+              if [[ $(echo "$CHECK_RESPONSE" | jq -r 'type') != "null" ]]; then
+                echo "$ORGANIZATION/$REPO"
+              fi
+            done
+
+            PAGE=$((PAGE+1))
+          done
